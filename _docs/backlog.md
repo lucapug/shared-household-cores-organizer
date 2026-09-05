@@ -47,5 +47,5 @@ Adapted from `_docs/plan.md`. The only real deviation: persistence moves from
 
 ## Phase 4 — Hardening
 
-- [ ] **9. End-to-end tests**
+- [x] **9. End-to-end tests**
   Board rendering across week boundaries, rotation stagger correctness, reset behavior.

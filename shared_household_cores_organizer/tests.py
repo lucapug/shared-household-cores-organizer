@@ -1,9 +1,10 @@
-from datetime import date
+from datetime import date, timedelta
+from unittest import mock
 
 from django.test import Client, SimpleTestCase, TestCase
 
 from . import rotation
-from .models import Chore, ChoreWeekState, Member
+from .models import Chore, ChoreWeekState, HouseholdConfig, Member
 
 
 class WeekStartTests(SimpleTestCase):
@@ -177,3 +178,115 @@ class WeekResetTests(TestCase):
         response = self.client.post("/week/reset/")
         self.assertEqual(302, response.status_code)
         self.assertFalse(ChoreWeekState.objects.filter(pk=self.state.pk).exists())
+
+
+class EndToEndTests(TestCase):
+    def _add_member(self, name):
+        self.client.post("/members/add/", {"name": name})
+
+    def _add_chore(self, name):
+        self.client.post("/chores/add/", {"name": name})
+
+    def _board_rows(self):
+        response = self.client.get("/")
+        return [
+            (row["chore"].name, row["member"].name if row["member"] else None, row["state"])
+            for row in response.context["rows"]
+        ]
+
+    def _toggle(self, state):
+        response = self.client.post(
+            f"/states/{state.pk}/toggle/", HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(200, response.status_code)
+
+    def test_full_journey_setup_board_toggle_cover_note_reset(self):
+        for name in ["Alex", "Sam", "Jo"]:
+            self._add_member(name)
+        for name in ["Dishes", "Trash", "Floor"]:
+            self._add_chore(name)
+
+        setup = self.client.get("/setup/")
+        self.assertContains(setup, "Alex")
+        self.assertContains(setup, "Dishes")
+
+        rows = self._board_rows()
+        self.assertEqual(
+            [("Dishes", "Alex"), ("Trash", "Sam"), ("Floor", "Jo")],
+            [(chore, member, None)[:2] for chore, member, _ in rows],
+        )
+
+        first, second, third = [state for _, _, state in rows]
+        self._toggle(first)
+        self._toggle(second)
+
+        response = self.client.post(
+            f"/states/{third.pk}/cover/",
+            {"covered_by": Member.objects.get(name="Alex").pk},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertContains(response, "covered-original")
+
+        response = self.client.post(
+            f"/states/{first.pk}/note/",
+            {"note": "dishwasher liquid finished"},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertContains(response, "dishwasher liquid finished")
+
+        response = self.client.post("/week/reset/", HTTP_HX_REQUEST="true")
+        self.assertContains(response, "Yes, reset")
+        self.assertTrue(ChoreWeekState.objects.get(pk=first.pk).done)
+
+        response = self.client.post(
+            "/week/reset/", {"confirm": "1"}, HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual("true", response.headers.get("HX-Refresh"))
+
+        rows_after = self._board_rows()
+        self.assertEqual([False, False, False], [s.done for _, _, s in rows_after])
+        self.assertEqual(["", "", ""], [s.note for _, _, s in rows_after])
+        self.assertEqual([None, None, None], [s.covered_by for _, _, s in rows_after])
+
+    def test_rotation_stagger_on_board(self):
+        for name in ["Alex", "Sam", "Jo"]:
+            self._add_member(name)
+        for name in ["C1", "C2", "C3", "C4", "C5"]:
+            self._add_chore(name)
+
+        rows = self._board_rows()
+        self.assertEqual(
+            [("C1", "Alex"), ("C2", "Sam"), ("C3", "Jo"), ("C4", "Alex"), ("C5", "Sam")],
+            [(chore, member) for chore, member, _ in rows],
+        )
+
+    def test_week_boundary_creates_fresh_week_and_keeps_history(self):
+        for name in ["Alex", "Sam"]:
+            self._add_member(name)
+        self._add_chore("Dishes")
+
+        rows = self._board_rows()
+        state = rows[0][2]
+        self._toggle(state)
+
+        self.assertEqual(1, HouseholdConfig.objects.count())
+        anchor = HouseholdConfig.objects.first().anchor_date
+
+        fake_today = rotation.week_start_for(anchor) + timedelta(days=9)
+
+        class FakeDate(date):
+            @classmethod
+            def today(cls):
+                return fake_today
+
+        with mock.patch("shared_household_cores_organizer.rotation.date", FakeDate):
+            rows_next_week = self._board_rows()
+            new_state = rows_next_week[0][2]
+
+            self.assertNotEqual(state.pk, new_state.pk)
+            self.assertFalse(new_state.done)
+            self.assertEqual(
+                state.week_start + timedelta(days=7), new_state.week_start
+            )
+            old = ChoreWeekState.objects.get(pk=state.pk)
+            self.assertTrue(old.done)

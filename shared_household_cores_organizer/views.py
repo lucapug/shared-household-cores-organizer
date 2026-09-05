@@ -95,7 +95,9 @@ def week_reset(request):
             return render(request, f"{APP}/_reset_confirm.html")
         ChoreWeekState.objects.filter(week_start=week_start).delete()
         if is_htmx:
-            return render(request, f"{APP}/_reset_button.html")
+            response = render(request, f"{APP}/_reset_button.html")
+            response["HX-Refresh"] = "true"
+            return response
         return redirect("chore_wheel:board")
     return render(request, f"{APP}/_reset_button.html")
 
