@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Setup</h1>
+<p>Anchor date: <strong>{{ anchor }}</strong> (week counter starts here)</p>
+
+<section>
+  <h2>Members</h2>
+  <form method="post" action="{% url 'chore_wheel:add_member' %}" class="add-row">
+    {% csrf_token %}
+    <input type="text" name="name" maxlength="100" required placeholder="New member name" autocomplete="off">
+    <button type="submit">Add member</button>
+  </form>
+  <ul class="setup-list">
+    {% for member in members %}
+    <li>
+      <span class="label">{{ member.name }}</span>
+      <span class="actions">
+        <form method="post" action="{% url 'chore_wheel:move_member' member.pk 'up' %}">{% csrf_token %}<button type="submit" aria-label="Move up">↑</button></form>
+        <form method="post" action="{% url 'chore_wheel:move_member' member.pk 'down' %}">{% csrf_token %}<button type="submit" aria-label="Move down">↓</button></form>
+        <form method="post" action="{% url 'chore_wheel:delete_member' member.pk %}">{% csrf_token %}<button type="submit" class="danger" aria-label="Delete">✕</button></form>
+      </span>
+    </li>
+    {% empty %}
+    <li class="empty">No members yet.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section>
+  <h2>Chores</h2>
+  <form method="post" action="{% url 'chore_wheel:add_chore' %}" class="add-row">
+    {% csrf_token %}
+    <input type="text" name="name" maxlength="200" required placeholder="New chore name" autocomplete="off">
+    <button type="submit">Add chore</button>
+  </form>
+  <ul class="setup-list">
+    {% for chore in chores %}
+    <li>
+      <span class="label">{{ chore.name }}</span>
+      <span class="actions">
+        <form method="post" action="{% url 'chore_wheel:move_chore' chore.pk 'up' %}">{% csrf_token %}<button type="submit" aria-label="Move up">↑</button></form>
+        <form method="post" action="{% url 'chore_wheel:move_chore' chore.pk 'down' %}">{% csrf_token %}<button type="submit" aria-label="Move down">↓</button></form>
+        <form method="post" action="{% url 'chore_wheel:delete_chore' chore.pk %}">{% csrf_token %}<button type="submit" class="danger" aria-label="Delete">✕</button></form>
+      </span>
+    </li>
+    {% empty %}
+    <li class="empty">No chores yet.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

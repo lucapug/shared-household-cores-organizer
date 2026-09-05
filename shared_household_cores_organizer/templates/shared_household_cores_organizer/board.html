@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ week_label }}</h1>
+<table class="board">
+  <tbody>
+    {% for row in rows %}
+      {% include "shared_household_cores_organizer/_chore_row.html" %}
+    {% empty %}
+      <tr><td class="empty">No chores yet. Go to <a href="{% url 'chore_wheel:setup' %}">Setup</a> to add members and chores.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,4 +1,19 @@
 from django.db import models
+from django.utils import timezone
+
+
+class HouseholdConfig(models.Model):
+    anchor_date = models.DateField()
+
+    def __str__(self):
+        return f"Anchor: {self.anchor_date}"
+
+    @classmethod
+    def load(cls):
+        obj = cls.objects.first()
+        if obj is None:
+            obj = cls.objects.create(anchor_date=timezone.localdate())
+        return obj
 
 
 class Member(models.Model):

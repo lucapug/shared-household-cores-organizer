@@ -1,0 +1,156 @@
+:root {
+  --bg: #faf9f6;
+  --card: #ffffff;
+  --ink: #22252a;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --done: #16a34a;
+  --danger: #dc2626;
+  --border: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.125rem;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.topbar nav a {
+  margin-left: 1rem;
+  text-decoration: none;
+  color: var(--accent);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.topbar nav a:hover { background: var(--bg); }
+
+main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+h1 { font-size: 1.75rem; margin: 1rem 0; }
+h2 { font-size: 1.25rem; margin: 1.5rem 0 0.5rem; }
+
+table.board {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.board td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.board tr:last-child td { border-bottom: none; }
+
+.chore-name { font-weight: 600; min-width: 8rem; }
+
+.assignee {
+  min-width: 6rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+tr.is-done .chore-name { text-decoration: line-through; color: var(--muted); }
+
+button, .toggle {
+  min-height: 3rem;
+  min-width: 5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  border-radius: 0.625rem;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--accent); }
+
+.toggle.on {
+  background: var(--done);
+  border-color: var(--done);
+  color: #fff;
+}
+
+button.danger { color: var(--danger); }
+button.danger:hover { border-color: var(--danger); }
+
+input[type="text"] {
+  min-height: 3rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.625rem;
+}
+
+input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+.add-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.add-row input { flex: 1; }
+
+.setup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.setup-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.setup-list li:last-child { border-bottom: none; }
+.setup-list .label { font-weight: 600; }
+
+.setup-list .actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.setup-list .actions button {
+  min-width: 3rem;
+  min-height: 2.75rem;
+}
+
+.empty { color: var(--muted); font-style: italic; }

@@ -15,25 +15,25 @@ Adapted from `_docs/plan.md`. The only real deviation: persistence moves from
 
 ## Phase 1 — Foundations
 
-- [ ] **1. Data models + migrations**
+- [x] **1. Data models + migrations**
   `Member`, `Chore`, `ChoreWeekState` (FK chore, week start date, `done`, `note`,
   `covered_by` nullable FK to Member). State keyed by week start makes weekly
   reset nearly free and preserves future history.
-- [ ] **2. Rotation engine (pure service module + unit tests)**
+- [x] **2. Rotation engine (pure service module + unit tests)**
   Week number from anchor date; assignment formula
   `member = members[(week_number + chore_index) % len(members)]`;
   current-week resolution. Pure logic, no DB.
 
 ## Phase 2 — Screens
 
-- [ ] **3. Setup screen**
+- [x] **3. Setup screen**
   Add/remove/reorder members and chores (forms + views; one-time config).
-- [ ] **4. Chore board (main screen)**
+- [x] **4. Chore board (main screen)**
   One row per chore: name, assigned person for the current week, done toggle,
   inline note field. Big touch targets for a kitchen tablet.
-- [ ] **5. Base template + minimal styling**
+- [x] **5. Base template + minimal styling**
   Single-page feel, tablet-friendly CSS; includes `htmx.min.js` vendored in `static/`.
-- [ ] **6. Row partials**
+- [x] **6. Row partials**
   `_chore_row.html` partial template. Toggle/note/cover views return the row
   fragment for HTMX requests, full page otherwise.
 
