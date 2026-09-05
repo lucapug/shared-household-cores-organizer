@@ -31,7 +31,11 @@ def board(request):
     return render(
         request,
         f"{APP}/board.html",
-        {"rows": rows, "week_label": rotation.week_label(week_start)},
+        {
+            "rows": rows,
+            "members": members,
+            "week_label": rotation.week_label(week_start),
+        },
     )
 
 
@@ -42,11 +46,12 @@ def _row_context(state):
     chores = list(Chore.objects.all())
     index = next((i for i, chore in enumerate(chores) if chore.id == state.chore_id), 0)
     return {
+        "members": members,
         "row": {
             "chore": state.chore,
             "state": state,
             "member": rotation.assign_member(members, week_number, index),
-        }
+        },
     }
 
 
@@ -70,6 +75,29 @@ def set_note(request, pk):
     state.note = request.POST.get("note", "")
     state.save()
     return _respond_with_row(request, state)
+
+
+@require_POST
+def set_cover(request, pk):
+    state = get_object_or_404(ChoreWeekState, pk=pk)
+    member_id = request.POST.get("covered_by", "")
+    state.covered_by = Member.objects.filter(pk=member_id).first() if member_id else None
+    state.save()
+    return _respond_with_row(request, state)
+
+
+def week_reset(request):
+    anchor = HouseholdConfig.load().anchor_date
+    week_start = rotation.current_week_start(anchor)
+    is_htmx = request.headers.get("HX-Request") == "true"
+    if request.method == "POST":
+        if is_htmx and not request.POST.get("confirm"):
+            return render(request, f"{APP}/_reset_confirm.html")
+        ChoreWeekState.objects.filter(week_start=week_start).delete()
+        if is_htmx:
+            return render(request, f"{APP}/_reset_button.html")
+        return redirect("chore_wheel:board")
+    return render(request, f"{APP}/_reset_button.html")
 
 
 def setup(request):

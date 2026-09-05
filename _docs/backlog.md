@@ -39,9 +39,9 @@ Adapted from `_docs/plan.md`. The only real deviation: persistence moves from
 
 ## Phase 3 — Interactions
 
-- [ ] **7. Cover/swap**
+- [x] **7. Cover/swap**
   Strike-through on assigned person's name, record who actually did it (HTMX row update).
-- [ ] **8. Weekly reset**
+- [x] **8. Weekly reset**
   Automatic on week boundary (week-keyed state) + manual reset button with
   explicit confirmation step.
 

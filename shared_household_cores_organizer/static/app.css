@@ -79,6 +79,10 @@ table.board {
   font-weight: 600;
 }
 
+.covered-original { color: var(--muted); }
+
+.covered-by { color: var(--done); }
+
 tr.is-done .chore-name { text-decoration: line-through; color: var(--muted); }
 
 button, .toggle {
@@ -154,3 +158,70 @@ input[type="text"]:focus { outline: none; border-color: var(--accent); }
 }
 
 .empty { color: var(--muted); font-style: italic; }
+
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.week-reset { display: inline-flex; align-items: center; gap: 0.75rem; }
+
+.week-reset .reset { border-color: var(--danger); color: var(--danger); }
+
+.week-reset.armed .confirm-text {
+  font-weight: 600;
+  color: var(--danger);
+  max-width: 18rem;
+}
+
+.week-reset.armed .danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.cover-cell details.cover { position: relative; }
+
+.cover-cell summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  min-width: 4.5rem;
+  padding: 0 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 0.625rem;
+  font-weight: 600;
+}
+
+.cover-cell summary::-webkit-details-marker { display: none; }
+
+.cover-cell summary:hover { border-color: var(--accent); }
+
+.cover-cell details[open] summary { border-color: var(--accent); }
+
+.cover-cell details.cover form {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 10;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  padding: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+}
+
+.cover-cell select {
+  min-height: 3rem;
+  min-width: 9rem;
+  font-size: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}

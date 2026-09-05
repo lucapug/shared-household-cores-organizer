@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ week_label }}</h1>
+<div class="board-header">
+  <h1>{{ week_label }}</h1>
+  {% include "shared_household_cores_organizer/_reset_button.html" %}
+</div>
 <table class="board">
   <tbody>
     {% for row in rows %}

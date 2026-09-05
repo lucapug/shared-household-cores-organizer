@@ -1,6 +1,6 @@
 from datetime import date
 
-from django.test import SimpleTestCase, TestCase
+from django.test import Client, SimpleTestCase, TestCase
 
 from . import rotation
 from .models import Chore, ChoreWeekState, Member
@@ -97,3 +97,83 @@ class ChoreWeekStateModelTests(TestCase):
         state.covered_by = member
         state.save()
         self.assertEqual("Alex", state.covered_by.name)
+
+
+class CoverViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.member = Member.objects.create(name="Alex")
+        self.other = Member.objects.create(name="Sam")
+        self.chore = Chore.objects.create(name="Dishes")
+        self.state = ChoreWeekState.objects.create(
+            chore=self.chore, week_start=date(2026, 8, 31)
+        )
+
+    def test_set_cover_via_htmx_returns_row_with_strike_through(self):
+        response = self.client.post(
+            f"/states/{self.state.pk}/cover/",
+            {"covered_by": self.other.pk},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b"covered-original", response.content)
+        self.assertIn(b"covered-by", response.content)
+        self.assertIn(b"Sam", response.content)
+        self.assertEqual(self.other, ChoreWeekState.objects.get(pk=self.state.pk).covered_by)
+
+    def test_clear_cover(self):
+        self.state.covered_by = self.other
+        self.state.save()
+        response = self.client.post(
+            f"/states/{self.state.pk}/cover/",
+            {"covered_by": ""},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertIsNone(ChoreWeekState.objects.get(pk=self.state.pk).covered_by)
+
+    def test_non_htmx_redirects(self):
+        response = self.client.post(f"/states/{self.state.pk}/cover/", {"covered_by": self.other.pk})
+        self.assertEqual(302, response.status_code)
+
+
+class WeekResetTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.chore = Chore.objects.create(name="Dishes")
+        self.week_start = rotation.week_start_for(date.today())
+        self.state = ChoreWeekState.objects.create(
+            chore=self.chore,
+            week_start=self.week_start,
+            done=True,
+            note="milk",
+        )
+        self.other_week = ChoreWeekState.objects.create(
+            chore=self.chore, week_start=date(2020, 1, 6), done=True
+        )
+
+    def test_get_returns_button_partial_without_resetting(self):
+        response = self.client.get("/week/reset/", HTTP_HX_REQUEST="true")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b"Reset week", response.content)
+        self.assertTrue(ChoreWeekState.objects.filter(pk=self.state.pk).exists())
+
+    def test_post_without_confirm_returns_armed_partial_and_keeps_state(self):
+        response = self.client.post("/week/reset/", HTTP_HX_REQUEST="true")
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b"Yes, reset", response.content)
+        self.assertTrue(ChoreWeekState.objects.filter(pk=self.state.pk).exists())
+
+    def test_confirmed_post_resets_current_week_only(self):
+        response = self.client.post(
+            "/week/reset/", {"confirm": "1"}, HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertIn(b"Reset week", response.content)
+        self.assertFalse(ChoreWeekState.objects.filter(pk=self.state.pk).exists())
+        self.assertTrue(ChoreWeekState.objects.filter(pk=self.other_week.pk).exists())
+
+    def test_non_htmx_post_resets_and_redirects(self):
+        response = self.client.post("/week/reset/")
+        self.assertEqual(302, response.status_code)
+        self.assertFalse(ChoreWeekState.objects.filter(pk=self.state.pk).exists())

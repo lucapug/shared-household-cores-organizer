@@ -1,6 +1,13 @@
 <tr id="row-{{ row.state.pk }}" class="{% if row.state.done %}is-done{% endif %}">
   <td class="chore-name">{{ row.chore.name }}</td>
-  <td class="assignee">{{ row.member.name|default:"—" }}</td>
+  <td class="assignee">
+    {% if row.state.covered_by %}
+      <s class="covered-original">{{ row.member.name|default:"—" }}</s>
+      <span class="covered-by">{{ row.state.covered_by.name }}</span>
+    {% else %}
+      {{ row.member.name|default:"—" }}
+    {% endif %}
+  </td>
   <td class="toggle-cell">
     <form method="post" action="{% url 'chore_wheel:toggle_done' row.state.pk %}"
           hx-post="{% url 'chore_wheel:toggle_done' row.state.pk %}"
@@ -17,5 +24,21 @@
            hx-post="{% url 'chore_wheel:set_note' row.state.pk %}"
            hx-trigger="change delay:500ms"
            hx-target="#row-{{ row.state.pk }}" hx-swap="outerHTML">
+  </td>
+  <td class="cover-cell">
+    <details class="cover">
+      <summary>Cover</summary>
+      <form method="post" action="{% url 'chore_wheel:set_cover' row.state.pk %}"
+            hx-post="{% url 'chore_wheel:set_cover' row.state.pk %}"
+            hx-target="#row-{{ row.state.pk }}" hx-swap="outerHTML">
+        {% csrf_token %}
+        <select name="covered_by" onchange="this.form.requestSubmit()">
+          <option value="">— nobody —</option>
+          {% for m in members %}
+            <option value="{{ m.pk }}" {% if row.state.covered_by_id == m.pk %}selected{% endif %}>{{ m.name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </details>
   </td>
 </tr>

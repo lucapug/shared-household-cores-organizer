@@ -1,0 +1,5 @@
+<span id="week-reset" class="week-reset">
+  <button type="button" class="reset"
+          hx-post="{% url 'chore_wheel:week_reset' %}"
+          hx-target="#week-reset" hx-swap="outerHTML">Reset week</button>
+</span>

@@ -1,0 +1,10 @@
+<span id="week-reset" class="week-reset armed">
+  <span class="confirm-text">Clear all done-marks, notes and covers for this week?</span>
+  <button type="button" class="danger"
+          hx-post="{% url 'chore_wheel:week_reset' %}"
+          hx-vals='{"confirm": "1"}'
+          hx-target="#week-reset" hx-swap="outerHTML">Yes, reset</button>
+  <button type="button" class="cancel"
+          hx-get="{% url 'chore_wheel:week_reset' %}"
+          hx-target="#week-reset" hx-swap="outerHTML">Cancel</button>
+</span>
